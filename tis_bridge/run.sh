@@ -7,6 +7,15 @@ set -e
 MQTT_HOST="${MQTT_HOST:-core-mosquitto}"
 MQTT_PORT="${MQTT_PORT:-1883}"
 
+echo "--- env diagnostic ---"
+echo "MQTT_HOST=${MQTT_HOST}"
+echo "MQTT_PORT=${MQTT_PORT}"
+echo "MQTT_USERNAME is $( [ -n "$MQTT_USERNAME" ] && echo 'SET' || echo 'EMPTY/UNSET' )"
+echo "MQTT_PASSWORD is $( [ -n "$MQTT_PASSWORD" ] && echo 'SET' || echo 'EMPTY/UNSET' )"
+echo "Full env dump (names only, no values):"
+env | cut -d= -f1 | sort
+echo "----------------------"
+
 ARGS="--mqtt-host $MQTT_HOST --mqtt-port $MQTT_PORT"
 
 if [ -n "$MQTT_USERNAME" ]; then
