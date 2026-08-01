@@ -1,5 +1,5 @@
 name: "TIS Controller Bridge"
-version: "1.0.2"
+version: "1.0.3"
 slug: "tis_bridge"
 description: "Bridges TIS Control UDP broadcasts (water meter, motion sensors) to MQTT with Home Assistant auto-discovery"
 arch:
@@ -17,10 +17,16 @@ init: false
 # physically on the same network/VLAN as the TIS controller for this to work
 # at all, same requirement as running the script standalone.
 host_network: true
-# Requests the Supervisor to auto-provision MQTT credentials for this add-on
-# and inject them as env vars (MQTT_HOST, MQTT_PORT, MQTT_USERNAME,
-# MQTT_PASSWORD) -- only works with the official Mosquitto broker add-on.
-services:
-  - mqtt:want
-options: {}
-schema: {}
+# The Supervisor `services: mqtt:want` auto-injection mechanism did not
+# provide credentials in testing, so MQTT connection details are configured
+# manually below instead of relying on it.
+options:
+  mqtt_host: "core-mosquitto"
+  mqtt_port: 1883
+  mqtt_username: ""
+  mqtt_password: ""
+schema:
+  mqtt_host: str
+  mqtt_port: port
+  mqtt_username: str
+  mqtt_password: password
