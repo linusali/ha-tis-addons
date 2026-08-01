@@ -144,10 +144,12 @@ def publish_water_meter_discovery(client):
         "unique_id": "tis_water_meter_reading",
         "state_topic": f"{NODE_ID}/water_meter/state",
         "state_class": "total_increasing",
-        # unit intentionally left unset -- the raw value's real-world unit
-        # (liters vs 0.001 m3 vs something else) was never confirmed, only
-        # that it's a monotonically increasing cumulative count. Set this
-        # once you've cross-checked a reading against the physical meter.
+        "device_class": "water",
+        "unit_of_measurement": "m³",
+        # confirmed against the meter's physical dial: raw=14600 == 146.00 m3,
+        # i.e. 1 raw unit = 0.01 m3
+        "value_template": "{{ value | float / 100 }}",
+        "suggested_display_precision": 2,
         "device": {
             "identifiers": ["tis_bridge"],
             "name": "TIS Controller Bridge",

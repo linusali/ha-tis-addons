@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.0.4
+- Water meter unit confirmed against the physical meter dial (raw 14600 ==
+  146.00 m3). Sensor now reports proper `m³` units with `device_class: water`
+  (enables Home Assistant Energy dashboard water tracking) and a value
+  template applying the /100 scale factor.
+
 ## 1.0.3
 - Dropped reliance on Supervisor's `services: mqtt:want` auto-injection --
   it did not provide credentials in testing (confirmed via env dump: no
