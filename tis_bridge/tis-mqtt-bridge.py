@@ -195,7 +195,7 @@ def main():
         if not args.mqtt_host:
             print("--mqtt-host is required unless --discover is set")
             return
-        client = mqtt.Client()
+        client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2)
         if args.mqtt_user:
             client.username_pw_set(args.mqtt_user, args.mqtt_pass)
         connect_host = args.mqtt_host
