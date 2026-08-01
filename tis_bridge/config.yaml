@@ -1,0 +1,27 @@
+name: "TIS Controller Bridge"
+version: "1.0.0"
+slug: "tis_bridge"
+description: "Bridges TIS Control UDP broadcasts (water meter, motion sensors) to MQTT with Home Assistant auto-discovery"
+url: ""
+arch:
+  - amd64
+  - aarch64
+  - armv7
+  - armhf
+  - i386
+startup: services
+boot: auto
+init: false
+# Required so the container shares the host's network interface directly --
+# UDP broadcast traffic from the TIS controller will not be received through
+# Docker's default bridge networking. The Home Assistant host itself must be
+# physically on the same network/VLAN as the TIS controller for this to work
+# at all, same requirement as running the script standalone.
+host_network: true
+# Requests the Supervisor to auto-provision MQTT credentials for this add-on
+# and inject them as env vars (MQTT_HOST, MQTT_PORT, MQTT_USERNAME,
+# MQTT_PASSWORD) -- only works with the official Mosquitto broker add-on.
+services:
+  - mqtt:want
+options: {}
+schema: {}
