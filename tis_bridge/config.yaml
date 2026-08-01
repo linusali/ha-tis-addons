@@ -2,7 +2,6 @@ name: "TIS Controller Bridge"
 version: "1.0.0"
 slug: "tis_bridge"
 description: "Bridges TIS Control UDP broadcasts (water meter, motion sensors) to MQTT with Home Assistant auto-discovery"
-url: ""
 arch:
   - amd64
   - aarch64
