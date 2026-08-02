@@ -1,5 +1,27 @@
 # Changelog
 
+## 1.0.7
+- Fixed the water meter entity showing "unknown" after a Home Assistant
+  restart and staying that way until the add-on itself was restarted.
+  Root cause: state was only published to MQTT when the decoded value
+  actually differed from the last one, even though we actively poll every
+  `poll_interval` seconds regardless. After an HA-only restart (the add-on
+  keeps running with its own unchanged in-memory last-value), the
+  controller kept replying with the same value every poll and nothing new
+  was ever published, since it wasn't a change -- only restarting the
+  add-on reset that in-memory state and forced a republish. Now publishes
+  every successful poll response, so the entity self-heals within one
+  poll cycle (worst case `poll_interval` seconds of "unknown") instead of
+  potentially waiting up to a day for the value to next actually change.
+  State topics are deliberately NOT retained: retaining would mean a
+  restarted HA (or the water meter's own not-yet-arrived first poll)
+  gets served a possibly-hours-old value presented as current, which for
+  the motion sensors especially would be actively misleading (a stale
+  retained "ON" from an old motion event, shown as current) rather than
+  just briefly and honestly "unknown". Both entities self-heal organically
+  instead: water meter within one poll cycle, motion sensors on their next
+  real event.
+
 ## 1.0.6
 - Exposed `poll_interval` and `controller_ip` as add-on Configuration
   options instead of being fixed script defaults.

@@ -281,11 +281,25 @@ def main():
             # --- known: water meter ---
             if info["device_id"] == WATER_METER_DEVICE and info["operation_code"] == WATER_METER_RESPONSE_OPCODE:
                 value = parse_water_meter_reading(info["additional_bytes"])
-                if value is not None and value != last_water_value:
-                    ts = time.strftime("%Y-%m-%d %H:%M:%S")
-                    print(f"[{ts}] water_meter = {value}")
-                    last_water_value = value
+                if value is not None:
+                    changed = value != last_water_value
+                    if changed:
+                        ts = time.strftime("%Y-%m-%d %H:%M:%S")
+                        print(f"[{ts}] water_meter = {value}")
+                        last_water_value = value
                     if client:
+                        # Publish every poll response, not just on change --
+                        # we poll every --poll-interval seconds regardless,
+                        # so there's no reason MQTT should only hear about it
+                        # when the value happens to differ. This is what
+                        # makes the entity self-heal within one poll cycle
+                        # after an HA restart, rather than waiting for the
+                        # value to next actually change (up to a day away).
+                        # Deliberately not retained: HA would treat a
+                        # replayed old value as a fresh state event on every
+                        # restart. The organic self-heal above (worst case
+                        # one poll_interval of "unknown") is preferable to
+                        # that, same reasoning as the motion sensors below.
                         client.publish(f"{NODE_ID}/water_meter/state", value)
                 continue
 
@@ -298,6 +312,12 @@ def main():
                     print(f"[{ts}] {object_id} = {'ON (motion)' if state else 'OFF (clear)'}")
                     last_motion_state[object_id] = state
                     if client:
+                        # Not retained, deliberately: a retained "ON" from
+                        # an old motion event would be presented to HA as
+                        # current on restart, which is actively misleading
+                        # rather than just temporarily unknown. Motion
+                        # state should only ever reflect a real, recent
+                        # event -- it self-heals naturally on the next one.
                         client.publish(f"{NODE_ID}/{object_id}/state", "ON" if state else "OFF")
                 continue
 
