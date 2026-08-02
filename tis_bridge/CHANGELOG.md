@@ -1,5 +1,17 @@
 # Changelog
 
+## 1.0.10
+- The 1.0.9 unique_id change didn't actually produce a fresh entity --
+  Home Assistant appears to track MQTT discovery continuity by the
+  discovery *topic*, not just the unique_id field inside the payload, so
+  the old poisoned statistics history followed along to the "new" entity.
+  Now publishes on a genuinely new discovery topic (water_meter ->
+  water_meter_v2) and explicitly retires the old one by publishing an
+  empty retained payload to its discovery topic (the standard MQTT
+  discovery convention for removing an entity), so Home Assistant should
+  remove it automatically instead of leaving it orphaned for manual
+  cleanup.
+
 ## 1.0.9
 - Changed the water meter entity's `unique_id` (tis_water_meter_reading ->
   tis_water_meter_reading_v2) to force a brand new entity with clean

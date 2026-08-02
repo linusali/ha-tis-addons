@@ -182,18 +182,26 @@ DISCOVERY_PREFIX = "homeassistant"
 NODE_ID = "tis_bridge"
 
 
+WATER_METER_OBJECT_ID = "water_meter_v2"
+WATER_METER_OBJECT_ID_OLD = "water_meter"  # v1, retired -- see publish_water_meter_discovery
+
+
 def publish_water_meter_discovery(client):
-    topic = f"{DISCOVERY_PREFIX}/sensor/{NODE_ID}/water_meter/config"
+    # Changing just the unique_id inside the payload while keeping the same
+    # discovery topic did NOT create a genuinely separate entity in testing
+    # -- HA appears to track continuity by the topic itself, so the old
+    # (poisoned) statistics history followed along. Using a new topic
+    # (object_id) forces a real, independent entity. The old topic is
+    # explicitly cleared below (empty retained payload = standard MQTT
+    # discovery convention for removing an entity) rather than left orphaned.
+    old_topic = f"{DISCOVERY_PREFIX}/sensor/{NODE_ID}/{WATER_METER_OBJECT_ID_OLD}/config"
+    client.publish(old_topic, "", retain=True)
+
+    topic = f"{DISCOVERY_PREFIX}/sensor/{NODE_ID}/{WATER_METER_OBJECT_ID}/config"
     payload = {
         "name": "TIS Water Meter",
-        # v2: bumped from "tis_water_meter_reading" to force a fresh entity
-        # with clean statistics history. The old unique_id's history was
-        # poisoned by a since-fixed decode bug (occasional readings of 0
-        # misread by HA's total_increasing statistics as meter resets,
-        # inflating recorded consumption). Delete the old orphaned entity
-        # from Settings -> Devices & Services -> Entities once this is live.
         "unique_id": "tis_water_meter_reading_v2",
-        "state_topic": f"{NODE_ID}/water_meter/state",
+        "state_topic": f"{NODE_ID}/{WATER_METER_OBJECT_ID}/state",
         "state_class": "total_increasing",
         "device_class": "water",
         "unit_of_measurement": "m³",
@@ -332,7 +340,7 @@ def main():
                         # restart. The organic self-heal above (worst case
                         # one poll_interval of "unknown") is preferable to
                         # that, same reasoning as the motion sensors below.
-                        client.publish(f"{NODE_ID}/water_meter/state", value)
+                        client.publish(f"{NODE_ID}/{WATER_METER_OBJECT_ID}/state", value)
                 continue
 
             # --- known: motion sensors ---
