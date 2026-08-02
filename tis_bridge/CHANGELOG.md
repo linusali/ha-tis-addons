@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.0.6
+- Exposed `poll_interval` and `controller_ip` as add-on Configuration
+  options instead of being fixed script defaults.
+
 ## 1.0.5
 - Added active polling for the water meter (every 60s by default) instead of
   relying entirely on the TIS app to trigger a reading -- the controller

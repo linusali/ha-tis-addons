@@ -1,5 +1,5 @@
 name: "TIS Controller Bridge"
-version: "1.0.5"
+version: "1.0.6"
 slug: "tis_bridge"
 description: "Bridges TIS Control UDP broadcasts (water meter, motion sensors) to MQTT with Home Assistant auto-discovery"
 arch:
@@ -25,8 +25,12 @@ options:
   mqtt_port: 1883
   mqtt_username: ""
   mqtt_password: ""
+  controller_ip: "192.168.6.200"
+  poll_interval: 60
 schema:
   mqtt_host: str
   mqtt_port: port
   mqtt_username: str
   mqtt_password: password
+  controller_ip: str
+  poll_interval: int(5,)
