@@ -1,5 +1,16 @@
 # Changelog
 
+## 1.0.5
+- Added active polling for the water meter (every 60s by default) instead of
+  relying entirely on the TIS app to trigger a reading -- the controller
+  does not broadcast the water meter's health data unprompted, unlike the
+  motion sensors and date/time heartbeat, so passive listening alone left
+  the sensor stale whenever the app wasn't actively running.
+- Switched from a hand-rolled CRC implementation to the official
+  TISControlProtocol package's CRC functions (installed with --no-deps to
+  avoid pulling in its homeassistant dependency, which isn't needed for
+  the two functions actually used).
+
 ## 1.0.4
 - Water meter unit confirmed against the physical meter dial (raw 14600 ==
   146.00 m3). Sensor now reports proper `m³` units with `device_class: water`
