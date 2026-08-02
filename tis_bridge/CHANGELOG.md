@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.0.9
+- Changed the water meter entity's `unique_id` (tis_water_meter_reading ->
+  tis_water_meter_reading_v2) to force a brand new entity with clean
+  statistics history, rather than trying to individually correct the many
+  data points poisoned by the 0-reading bug fixed in 1.0.8. After
+  updating, delete the old orphaned entity from Settings -> Devices &
+  Services -> Entities (it will stop receiving updates once this version
+  is running).
+
 ## 1.0.8
 - Added a plausibility check to the water meter reading before publishing.
   Observed in testing: an occasional reading of exactly 0 got published,

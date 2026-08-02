@@ -186,7 +186,13 @@ def publish_water_meter_discovery(client):
     topic = f"{DISCOVERY_PREFIX}/sensor/{NODE_ID}/water_meter/config"
     payload = {
         "name": "TIS Water Meter",
-        "unique_id": "tis_water_meter_reading",
+        # v2: bumped from "tis_water_meter_reading" to force a fresh entity
+        # with clean statistics history. The old unique_id's history was
+        # poisoned by a since-fixed decode bug (occasional readings of 0
+        # misread by HA's total_increasing statistics as meter resets,
+        # inflating recorded consumption). Delete the old orphaned entity
+        # from Settings -> Devices & Services -> Entities once this is live.
+        "unique_id": "tis_water_meter_reading_v2",
         "state_topic": f"{NODE_ID}/water_meter/state",
         "state_class": "total_increasing",
         "device_class": "water",
