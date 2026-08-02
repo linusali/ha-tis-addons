@@ -97,6 +97,27 @@ def parse_water_meter_reading(additional_bytes):
     return (body[2] << 24) | (body[3] << 16) | (body[4] << 8) | body[5]
 
 
+# The meter's physical digit wheels only go up to 9999 m3 before wrapping
+# back to 0 -- a real, if extremely rare (would take decades at any normal
+# household usage rate), event that must be allowed through. Everything
+# else that looks like a drop is decode garbage: observed twice in testing,
+# an occasional reading of exactly 0 got published and was misread by HA's
+# total_increasing statistics as a meter reset, inflating a day's recorded
+# consumption by ~1700 m3. ROLLOVER_FLOOR requires the previous reading to
+# have actually been near the real maximum before a drop is trusted --
+# not just "any drop after a plausible-looking value" -- since real
+# garbage (like the observed 0) can appear at any point in the range.
+METER_MAX_M3 = 9999
+RAW_UNITS_PER_M3 = 100  # confirmed against the physical dial: raw 14600 == 146.00 m3
+ROLLOVER_FLOOR = int(METER_MAX_M3 * RAW_UNITS_PER_M3 * 0.99)  # last reading must be within 1% of max
+
+
+def is_plausible_water_reading(value, last_value):
+    if last_value is None or value >= last_value:
+        return True
+    return last_value >= ROLLOVER_FLOOR  # genuine rollover: was near max, now near 0
+
+
 def get_local_ip_for(target_ip):
     """Ask the OS routing table which local IP would be used to reach target_ip."""
     s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -281,6 +302,11 @@ def main():
             # --- known: water meter ---
             if info["device_id"] == WATER_METER_DEVICE and info["operation_code"] == WATER_METER_RESPONSE_OPCODE:
                 value = parse_water_meter_reading(info["additional_bytes"])
+                if value is not None and not is_plausible_water_reading(value, last_water_value):
+                    ts = time.strftime("%Y-%m-%d %H:%M:%S")
+                    print(f"[{ts}] water_meter REJECTED implausible reading: {value} "
+                          f"(last was {last_water_value}, not near rollover) raw={bytes(info['additional_bytes']).hex()}")
+                    value = None
                 if value is not None:
                     changed = value != last_water_value
                     if changed:

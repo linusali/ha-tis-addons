@@ -1,5 +1,16 @@
 # Changelog
 
+## 1.0.8
+- Added a plausibility check to the water meter reading before publishing.
+  Observed in testing: an occasional reading of exactly 0 got published,
+  which Home Assistant's `total_increasing` statistics interpreted as a
+  genuine meter reset, then counted the jump back to the real value as
+  fresh consumption -- inflating a day's recorded usage by ~1700 m3 from
+  just two bad readings. A drop is now only accepted if the previous
+  reading was within 1% of the meter's actual physical maximum (9999 m3,
+  from the dial's digit wheel count), i.e. a real rollover. Any other
+  drop is logged and discarded, and the last good value is kept.
+
 ## 1.0.7
 - Fixed the water meter entity showing "unknown" after a Home Assistant
   restart and staying that way until the add-on itself was restarted.
